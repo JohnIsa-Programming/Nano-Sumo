@@ -1,120 +1,110 @@
+//import newping (better ultrasonic stuff)
 #include "NewPing.h"
-// Motor A connections
-int enA = 2;
-int in1 = 3;
-int in2 = 4;
-// Motor B connections
-int enB = 7;
-int in3 = 5;
-int in4 = 6;
+//ultrasonic variables-------------------------------------------------------
+#define trigPin 12
+#define echoPin 11
 
-//ultrasonic pins
-int trigPin = 8;
-int echoPin = 9;
+long duration;
+int distance;
 
-//ir line sensor pins
-int IRPin = 10;
+//IR sensor variables------------------------------------------------------
+#define irPin 4
 
-//max distance scanned by Ultrasonic sensor
-int distance = 400;
+//motor variables-----------------------------------------------------------
+//motor 1
+#define ENA 10
+#define IN1 9
+#define IN2 8
 
-NewPing sonar(trigPin, echoPin, distance);
+//motor 2
+#define ENB 5
+#define IN3 7
+#define IN4 6
+
+NewPing sonar(trigPin,echoPin,80);
+int Speed = 225;
 
 void setup() {
-	// Set all the motor control pins to outputs
-	pinMode(enA, OUTPUT);
-	pinMode(enB, OUTPUT);
-	pinMode(in1, OUTPUT);
-	pinMode(in2, OUTPUT);
-	pinMode(in3, OUTPUT);
-	pinMode(in4, OUTPUT);
-	
-	// Turn off motors - Initial state
-	digitalWrite(in1, LOW);
-	digitalWrite(in2, LOW);
-	digitalWrite(in3, LOW);
-	digitalWrite(in4, LOW);
-  
-  //set ultrasonic pins
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin,INPUT);
-  
-  //set IR pins
-  pinMode(IRPin,INPUT);
-  //enable serial monitor
-  Serial.begin(9600);
+  Serial.begin(9600); 
+  //ultrasonic variables---------------------------------------------------
+  pinMode(trigPin, OUTPUT); 
+  pinMode(echoPin, INPUT); 
+  //IR sensor variabkles-------------------------------------------------
+  pinMode(irPin, INPUT);
+  //pinMode(irBPin, INPUT);
+  //MOTOR---------------------------------------------------------------
+  pinMode(ENA, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+  pinMode(ENB, OUTPUT);
+
+  delay(2000);
+}
+
+
+void carRotate(){
+  analogWrite(ENA, 130);
+  analogWrite(ENB, 130);
+  //left wheel
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  //right wheel
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+void carForward(){
+  analogWrite(ENA, Speed);
+  analogWrite(ENB, Speed);
+
+  //left wheel
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  //right wheel
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+void carBack(){
+  analogWrite(ENA, Speed);
+  analogWrite(ENB, Speed);
+
+  //left wheel
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  //right wheel
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+
+  delay(500);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+}
+void carStop(){
+  //left wheel
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  //right wheel
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
 }
 
 void loop() {
-  int IRStatus = digitalRead(IRPin);
-  Serial.println(IRStatus);
-  delay(200);
-  // UltraScan();
-	// directionControl();
-	// delay(1000);
-	// speedControl();
-	// delay(1000);
-}
+  
+  int distance = sonar.ping_cm();
+  int irstatus = digitalRead(irPin);
+  Serial.println(distance);
+  Serial.println(irstatus);
+  if(irstatus == 0){
+    Serial.println("Going Back");
+    carBack();
+  } else if(distance <= 30 && distance != 0){
+    Serial.println("Charge!!");
+    carForward();
+  } else {
+    Serial.println("Seeking");
+    carRotate();
+  }
+  delay(20);
 
-void UltraScan(){
-  Serial.print("Distance = ");
-	Serial.print(sonar.ping_cm());//scans distance
-	Serial.println(" cm");
-	delay(500);
-}
-// This function lets you control spinning direction of motors
-void directionControl() {
-	// Set motors to maximum speed
-	// For PWM maximum possible values are 0 to 255
-	analogWrite(enA, 255);
-	analogWrite(enB, 255);
-
-	// Turn on motor A & B
-	digitalWrite(in1, HIGH);
-	digitalWrite(in2, LOW);
-	digitalWrite(in3, HIGH);
-	digitalWrite(in4, LOW);
-	delay(2000);
-	
-	// Now change motor directions
-	digitalWrite(in1, LOW);
-	digitalWrite(in2, HIGH);
-	digitalWrite(in3, LOW);
-	digitalWrite(in4, HIGH);
-	delay(2000);
-	
-	// Turn off motors
-	digitalWrite(in1, LOW);
-	digitalWrite(in2, LOW);
-	digitalWrite(in3, LOW);
-	digitalWrite(in4, LOW);
-}
-
-// This function lets you control speed of the motors
-void speedControl() {
-	// Turn on motors
-	digitalWrite(in1, LOW);
-	digitalWrite(in2, HIGH);
-	digitalWrite(in3, LOW);
-	digitalWrite(in4, HIGH);
-	
-	// Accelerate from zero to maximum speed
-	for (int i = 0; i < 256; i++) {
-		analogWrite(enA, i);
-		analogWrite(enB, i);
-		delay(20);
-	}
-	
-	// Decelerate from maximum speed to zero
-	for (int i = 255; i >= 0; --i) {
-		analogWrite(enA, i);
-		analogWrite(enB, i);
-		delay(20);
-	}
-	
-	// Now turn off motors
-	digitalWrite(in1, LOW);
-	digitalWrite(in2, LOW);
-	digitalWrite(in3, LOW);
-	digitalWrite(in4, LOW);
 }
