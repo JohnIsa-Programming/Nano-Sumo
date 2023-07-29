@@ -8,8 +8,7 @@ long duration;
 int distance;
 
 //IR sensor variables------------------------------------------------------
-#define irFPin 4
-#define irBPin 3
+#define irPin 4
 
 //motor variables-----------------------------------------------------------
 //motor 1
@@ -22,7 +21,7 @@ int distance;
 #define IN3 7
 #define IN4 6
 
-NewPing sonar(trigPin,echoPin,40);
+NewPing sonar(trigPin,echoPin,80);
 int Speed = 225;
 
 void setup() {
@@ -31,8 +30,8 @@ void setup() {
   pinMode(trigPin, OUTPUT); 
   pinMode(echoPin, INPUT); 
   //IR sensor variabkles-------------------------------------------------
-  pinMode(irFPin, INPUT);
-  pinMode(irBPin, INPUT);
+  pinMode(irPin, INPUT);
+  //pinMode(irBPin, INPUT);
   //MOTOR---------------------------------------------------------------
   pinMode(ENA, OUTPUT);
   pinMode(IN1, OUTPUT);
@@ -44,29 +43,10 @@ void setup() {
   delay(2000);
 }
 
-float ultrasonic(){
-  int distance = sonar.ping_cm();
-  Serial.print("Distance = ");
-  Serial.print(distance);
-  Serial.println(" cm");
-  return distance;
-}
-
-bool irFSensor(){
-  bool irFSensor = digitalRead(irFPin);
-
-  return irFSensor;
-}
-bool irBSensor(){
-  bool irBSensor = digitalRead(irBPin);
-
-  return irBSensor;
-}
 
 void carRotate(){
-  analogWrite(ENA, Speed);
-  analogWrite(ENB, Speed);
-
+  analogWrite(ENA, 130);
+  analogWrite(ENB, 130);
   //left wheel
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
@@ -95,6 +75,10 @@ void carBack(){
   //right wheel
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
+
+  delay(500);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
 }
 void carStop(){
   //left wheel
@@ -107,15 +91,20 @@ void carStop(){
 
 void loop() {
   
-  int distance = ultrasonic();
-  //create nested if statement make IR a priority if both detect black then continue with the created code below, if ir front detect white and ir back detect black then carBack, then viseversa.
-   if(distance > 30){
-     carRotate();
-   }
-   else if(distance <= 30){
-     carForward();
-   }
-  
-
+  int distance = sonar.ping_cm();
+  int irstatus = digitalRead(irPin);
+  Serial.println(distance);
+  Serial.println(irstatus);
+  if(irstatus == 0){
+    Serial.println("Going Back");
+    carBack();
+  } else if(distance <= 30 && distance != 0){
+    Serial.println("Charge!!");
+    carForward();
+  } else {
+    Serial.println("Seeking");
+    carRotate();
+  }
+  delay(20);
 
 }
