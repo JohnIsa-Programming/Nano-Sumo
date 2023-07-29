@@ -1,3 +1,5 @@
+//import newping (better ultrasonic stuff)
+#include "NewPing.h"
 //ultrasonic variables-------------------------------------------------------
 #define trigPin 12
 #define echoPin 11
@@ -20,6 +22,7 @@ int distance;
 #define IN3 7
 #define IN4 6
 
+NewPing sonar(trigPin,echoPin,40);
 int Speed = 225;
 
 void setup() {
@@ -38,18 +41,15 @@ void setup() {
   pinMode(IN4, OUTPUT);
   pinMode(ENB, OUTPUT);
 
-  delay(5000);
+  delay(2000);
 }
 
 float ultrasonic(){
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);   
-  digitalWrite(trigPin, HIGH);     // send waves for 10 us
-  delayMicroseconds(10);
-  duration = pulseIn(echoPin, HIGH); // receive reflected waves
-  distance = duration / 58.2;   // convert to distance
+  int distance = sonar.ping_cm();
+  Serial.print("Distance = ");
+  Serial.print(distance);
+  Serial.println(" cm");
   return distance;
-
 }
 
 bool irFSensor(){
@@ -106,15 +106,15 @@ void carStop(){
 }
 
 void loop() {
+  
   int distance = ultrasonic();
-
   //create nested if statement make IR a priority if both detect black then continue with the created code below, if ir front detect white and ir back detect black then carBack, then viseversa.
-  if(distance < 30){
-    carForward();
-  }
-  else if(distance <= 30){
-    carRotate();
-  }
+   if(distance > 30){
+     carRotate();
+   }
+   else if(distance <= 30){
+     carForward();
+   }
   
 
 
