@@ -8,7 +8,8 @@ long duration;
 int distance;
 
 //IR sensor variables------------------------------------------------------
-#define irPin 4
+#define irPinA 4
+#define irPinB 3
 
 //motor variables-----------------------------------------------------------
 //motor 1
@@ -22,7 +23,7 @@ int distance;
 #define IN4 6
 
 NewPing sonar(trigPin,echoPin,80);
-int Speed = 225;
+int Speed = 255;
 
 void setup() {
   Serial.begin(9600); 
@@ -30,7 +31,8 @@ void setup() {
   pinMode(trigPin, OUTPUT); 
   pinMode(echoPin, INPUT); 
   //IR sensor variabkles-------------------------------------------------
-  pinMode(irPin, INPUT);
+  pinMode(irPinA, INPUT);
+  pinMode(irPinB, INPUT);
   //pinMode(irBPin, INPUT);
   //MOTOR---------------------------------------------------------------
   pinMode(ENA, OUTPUT);
@@ -40,7 +42,7 @@ void setup() {
   pinMode(IN4, OUTPUT);
   pinMode(ENB, OUTPUT);
 
-  delay(2000);
+  delay(5000);
 }
 
 
@@ -80,6 +82,21 @@ void carBack(){
   analogWrite(ENA, 0);
   analogWrite(ENB, 0);
 }
+void carFrontRecover(){
+  analogWrite(ENA, Speed);
+  analogWrite(ENB, Speed);
+
+  //left wheel
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  //right wheel
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+
+  delay(500);
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+}
 void carStop(){
   //left wheel
   digitalWrite(IN1, LOW);
@@ -92,17 +109,23 @@ void carStop(){
 void loop() {
   
   int distance = sonar.ping_cm();
-  int irstatus = digitalRead(irPin);
+  int irstatusA = digitalRead(irPinA);
+  int irstatusB = digitalRead(irPinB);
   Serial.println(distance);
-  Serial.println(irstatus);
-  if(irstatus == 0){
+  Serial.println(irstatusA);
+  Serial.println(irstatusB);
+  if(irstatusA == 0){
     Serial.println("Going Back");
     carBack();
-  } else if(distance <= 30 && distance != 0){
+  } else if(irstatusB == 0){
+    Serial.println("Return to Arena!");
+    carFrontRecover();
+  }
+   else if(distance <= 30 && distance != 0){
     Serial.println("Charge!!");
     carForward();
   } else {
-    Serial.println("Seeking");
+    Serial.println("eSeeking");
     carRotate();
   }
   delay(20);
